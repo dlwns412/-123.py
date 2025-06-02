@@ -1,2 +1,3 @@
-print("ㅎㅇ")
+import streamlit as st
 
+st.write("ㅎㅇ")
