@@ -9,9 +9,9 @@ st.title("성병 관련 감염병 발생 현황 시각화")
 # 파일 업로드
 @st.cache_data
 def load_data():
-    data_by_army = pd.read_csv("감염병_군별_발생현황_20250602122005.csv", encoding='utf-8')
-    data_by_age = pd.read_csv("감염병_발생현황연령별_20250602121946.csv", encoding='utf-8')
-    data_by_month = pd.read_csv("감염병_발생현황월별_20250602121908.csv", encoding='utf-8')
+    data_by_army = pd.read_csv("감염병_군별_발생현황_20250602122005.csv", encoding='cp949')
+    data_by_age = pd.read_csv("감염병_발생현황연령별_20250602121946.csv", encoding='cp949')
+    data_by_month = pd.read_csv("감염병_발생현황월별_20250602121908.csv", encoding='cp949')
     data_by_year_gender_age = pd.read_csv("감염병_연도별_및_연령별__성별_발생수_20250602121929.csv", encoding='utf-8')
     return data_by_army, data_by_age, data_by_month, data_by_year_gender_age
 
