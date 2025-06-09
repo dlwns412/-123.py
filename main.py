@@ -3,16 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-if platform.system() == 'Windows':
-    font_name = font_manager.FontProperties(fname="c:/Windows/Fonts/malgun.ttf").get_name()
-    rc('font', family=font_name)
-elif platform.system() == 'Darwin':  # macOS
-    rc('font', family='AppleGothic')
-else:  # Linux (Streamlit Cloud 포함)
-    rc('font', family='NanumGothic')  # 이 폰트가 설치되어 있어야 함
-
-matplotlib.rcParams['axes.unicode_minus'] = False  # 마이너스 깨짐 방지
-
 # 페이지 설정
 st.set_page_config(layout="wide")
 st.title("📊 성병 관련 감염병 발생 현황 시각화")
