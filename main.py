@@ -10,7 +10,7 @@ from matplotlib import font_manager
 import os
 
 # 폰트 경로 설정
-font_path = os.path.join("fonts", "NanumGothic.ttf")  # 파일명이 정확해야 해
+font_path = os.path.join("fonts", "NanumGothic.")  # 파일명이 정확해야 해
 font_prop = font_manager.FontProperties(fname=font_path)
 
 # 한글 폰트 적용
