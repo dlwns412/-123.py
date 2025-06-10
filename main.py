@@ -6,7 +6,7 @@ from matplotlib import font_manager
 import os
 
 # ✅ 폰트 로드
-font_path = os.path.join("fonts", "NanumGothic.ttf")
+font_path = os.path.join("font", "NanumGothic.ttf")
 font_prop = font_manager.FontProperties(fname=font_path)
 plt.rcParams['font.family'] = font_prop.get_name()
 plt.rcParams['axes.unicode_minus'] = False
