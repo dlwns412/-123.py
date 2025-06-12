@@ -1,29 +1,39 @@
+import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm
-import streamlit as st
+import seaborn as sns
+from matplotlib import font_manager, rc
+import os
 
+# 📁 폰트 경로 설정
+font_path = os.path.join("font", "NanumGothic.ttf")
+font_name = font_manager.FontProperties(fname=font_path).get_name()
+rc('font', family=font_name)
+plt.rcParams['axes.unicode_minus'] = False
 
-# 데이터 로딩
-df = pd.read_csv("감염병_발생현황월별_20250602121908.csv", encoding="cp949")
-df.columns = df.columns.str.strip()  # 혹시 모를 공백 제거
+# 🎯 STI 관련 키워드 정의
+sti_keywords = ['성병', 'HIV', '임질', '매독', '클라미디아', '성매개']
 
-# 실제 컬럼명 확인
-st.write("컬럼명 확인:", df.columns)
+# 📊 데이터 로드
+@st.cache_data
+def load_data():
+    df = pd.read_csv("감염병_연도별_및_연령별__성별_발생수_20250602121929.csv", encoding='cp949')  # 또는 utf-8-sig 시도
+    return df
 
-# 성병 관련 키워드 필터링
-sti_keywords = ['임질', '클라미디아', '성병', '매독', '성기', '에이즈']
-sti_mask = df[df.columns[0]].str.contains('|'.join(sti_keywords), na=False)
-df_sti = df[sti_mask]
+df = load_data()
 
-# 시각화
-plt.figure(figsize=(10, 6))
-for name in df_sti[df.columns[0]].unique():
-    subset = df_sti[df_sti[df.columns[0]] == name]
-    plt.plot(subset[df.columns[1]], subset[df.columns[2]], label=name)
+# 🔍 STI 감염병만 필터링
+sti_df = df[df['감염병명'].str.contains('|'.join(sti_keywords), case=False, na=False)]
 
-plt.title("성병 감염병 월별 추이")
-plt.xlabel(df.columns[1])
-plt.ylabel(df.columns[2])
-plt.legend()
-st.pyplot(plt)
+# 🖼️ 시각화
+st.title("성병(STI) 발생 현황 시각화")
+
+# 📌 연도별 성병 발생 수 합계 그래프
+grouped = sti_df.groupby('연도')['발생수'].sum().reset_index()
+
+fig, ax = plt.subplots(figsize=(10, 5))
+sns.lineplot(data=grouped, x='연도', y='발생수', marker='o', ax=ax)
+ax.set_title("연도별 성병 발생수 추이", fontsize=16)
+ax.set_ylabel("발생 수")
+ax.set_xlabel("연도")
+st.pyplot(fig)
