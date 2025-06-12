@@ -3,10 +3,6 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import streamlit as st
 
-# 한글 폰트 설정
-font = "NanumGothic.ttf"
-font = fm.FontProperties(fname=font_path, size=12)
-plt.rcParams['font.family'] = fontprop.get_name()
 
 # 데이터 로딩
 df = pd.read_csv("감염병_발생현황월별_20250602121908.csv", encoding="cp949")
