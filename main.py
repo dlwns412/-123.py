@@ -1,16 +1,14 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm
 import seaborn as sns
+import matplotlib.font_manager as fm
 
-# 한글 폰트 설정 (NanumGothic.ttf 경로를 환경에 맞게 바꿔주세요)
-font_path = "/usr/share/fonts/truetype/nanum/NanumGothic.ttf"  # 예: 리눅스/서버 환경
-# font_path = "./NanumGothic.ttf"  # 또는 프로젝트 폴더에 직접 넣은 경우 이렇게
-
+# 한글 폰트 설정 (NanumGothic.ttf 경로 지정)
+font_path = "./font/NanumGothic.ttf"
 fontprop = fm.FontProperties(fname=font_path).get_name()
-sns.set(font=fontprop)
 plt.rc('font', family=fontprop)
+sns.set(font=fontprop)
 
 # 페이지 설정
 st.set_page_config(layout="wide")
