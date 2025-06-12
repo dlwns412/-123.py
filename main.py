@@ -37,7 +37,7 @@ section = st.sidebar.selectbox(
 )
 
 if section == "군별 발생 현황":
-    st.header("🪖 군별 감염병 발생 현황")
+    st.header("군별 감염병 발생 현황")
     st.dataframe(army)
     fig, ax = plt.subplots(figsize=(10, 5))
     sns.barplot(data=army, x=army.columns[0], y=army.columns[1], ax=ax)
