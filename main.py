@@ -1,70 +1,87 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
+import matplotlib.font_manager as fm
+import os
 
-# 페이지 설정
-st.set_page_config(layout="wide")
-st.title("📊 성병 관련 감염병 발생 현황 시각화")
+# 🔤 한글 폰트 설정 (NanumGothic.ttf가 fonts 폴더에 있어야 함)
+font_path = './fonts/NanumGothic.ttf'  # GitHub에 올릴 땐 이 경로 기준
+if os.path.exists(font_path):
+    fm.fontManager.addfont(font_path)
+    plt.rc('font', family='NanumGothic')
+else:
+    st.warning("❗ 폰트 파일(NanumGothic.ttf)을 './fonts' 폴더에 넣어주세요.")
+plt.rcParams['axes.unicode_minus'] = False  # 마이너스 깨짐 방지
 
-# CSV 파일 불러오기
+# 🧺 데이터 불러오기
 @st.cache_data
-def load_data():
-    data_by_army = pd.read_csv("감염병_군별_발생현황_20250602122005.csv", encoding='cp949')
-    data_by_age = pd.read_csv("감염병_발생현황연령별_20250602121946.csv", encoding='cp949')
-    data_by_month = pd.read_csv("감염병_발생현황월별_20250602121908.csv", encoding='cp949')
-    data_by_year_gender_age = pd.read_csv("감염병_연도별_및_연령별__성별_발생수_20250602121929.csv", encoding='cp949')
-    return data_by_army, data_by_age, data_by_month, data_by_year_gender_age
+def load_monthly_data():
+    try:
+        df = pd.read_csv("감염병_발생현황월별_20250602121908.csv", encoding='cp949')
+        return df
+    except Exception as e:
+        st.error(f"파일 불러오기 오류: {e}")
+        return pd.DataFrame()
 
-# 데이터 로딩
-army, age, month, year_gender_age = load_data()
+# 🔍 성병 키워드
+sti_keywords = ['성병', '클라미디아', '임질', '매독', '헤르페스', '에이즈', 'HIV']
 
-# 사이드바 메뉴
-section = st.sidebar.selectbox(
-    "시각화 항목 선택",
-    ["군별 발생 현황", "연령별 발생 현황", "월별 발생 현황", "연도/성별/연령별 발생"]
-)
+# 📈 앱 시작
+st.title("📊 성병 관련 감염병 월별 발생 현황 시각화")
 
-# 1. 군별 발생 현황
-if section == "군별 발생 현황":
-    st.header("🪖 군별 감염병 발생 현황")
-    st.dataframe(army)
-    fig, ax = plt.subplots(figsize=(10, 5))
-    sns.barplot(data=army, x=army.columns[0], y=army.columns[1], ax=ax)
-    plt.xticks(rotation=45)
-    st.pyplot(fig)
+df = load_monthly_data()
 
-# 2. 연령별 발생 현황
-elif section == "연령별 발생 현황":
-    st.header("👶👩‍🦳 연령별 감염병 발생 현황")
-    st.dataframe(age)
-    fig, ax = plt.subplots(figsize=(10, 5))
-    sns.barplot(data=age, x=age.columns[0], y=age.columns[1], ax=ax)
-    plt.xticks(rotation=45)
-    st.pyplot(fig)
+# 📌 컬럼명 확인 (디버깅용)
+if df.empty:
+    st.stop()
 
-# 3. 월별 발생 현황
-elif section == "월별 발생 현황":
-    st.header("🗓 월별 감염병 발생 추이")
-    st.dataframe(month)
-    fig, ax = plt.subplots(figsize=(10, 5))
-    sns.lineplot(data=month, x=month.columns[0], y=month.columns[1], marker='o', ax=ax)
-    plt.xticks(rotation=45)
-    st.pyplot(fig)
+st.subheader("📋 원본 데이터 컬럼명")
+st.write(df.columns.tolist())  # 컬럼명을 보여줘서 KeyError 방지
 
-# 4. 연도별/성별/연령별 발생수
-elif section == "연도/성별/연령별 발생":
-    st.header("📅 연도별 및 성별/연령별 감염병 발생 수")
-    st.dataframe(year_gender_age)
+# 💡 '감염병명'이라는 컬럼이 있는지 확인
+disease_col = None
+for col in df.columns:
+    if '감염병' in col:
+        disease_col = col
+        break
 
-    # 연도 선택
-    years = year_gender_age['연도'].unique()
-    selected_year = st.selectbox("연도 선택", sorted(years))
+if not disease_col:
+    st.error("❌ '감염병명' 관련 컬럼이 없습니다.")
+    st.stop()
 
-    filtered = year_gender_age[year_gender_age['연도'] == selected_year]
+# 🔍 성병 관련 데이터 필터링
+df_sti = df[df[disease_col].astype(str).str.contains('|'.join(sti_keywords), na=False)]
 
-    # 그래프 그리기
-    fig, ax = plt.subplots(figsize=(10, 5))
-    sns.barplot(data=filtered, x='연령', y='발생수', hue='성별', ax=ax)
-    plt.xticks(rotation=45)
-    st.pyplot(fig)
+if df_sti.empty:
+    st.warning("성병 관련 데이터가 없습니다.")
+else:
+    st.subheader("📊 성병 월별 발생 건수")
+    selected_disease = st.selectbox("🔽 감염병 선택", df_sti[disease_col].unique())
+
+    filtered = df_sti[df_sti[disease_col] == selected_disease]
+
+    # 월별로 정렬 시도 (정확한 컬럼명 자동 감지)
+    month_col = None
+    for col in df_sti.columns:
+        if '월' in col or '시점' in col:
+            month_col = col
+            break
+
+    value_col = None
+    for col in df_sti.columns:
+        if '발생' in col or '건수' in col or '수' in col:
+            value_col = col
+            break
+
+    if month_col and value_col:
+        filtered = filtered.sort_values(by=month_col)
+
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.plot(filtered[month_col], filtered[value_col], marker='o', color='tomato')
+        ax.set_title(f"{selected_disease} 월별 발생 추이")
+        ax.set_xlabel("월")
+        ax.set_ylabel("발생 수")
+        ax.grid(True)
+        st.pyplot(fig)
+    else:
+        st.error("❌ 월 또는 발생 수 관련 컬럼이 없습니다.")
