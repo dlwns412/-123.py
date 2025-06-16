@@ -4,12 +4,20 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.font_manager as fm
 
-# 한글 폰트 설정 (NanumGothic.ttf는 프로젝트 폴더 내에 있어야 합니다)
-font_path = "NanumGothic.ttf"
-fontprop = fm.FontProperties(fname=font_path).get_name()
-sns.set(font=fontprop)
+# 폰트 경로 설정 (자신의 ttf 파일 경로로 바꿔주세요)
+font_path = "./font/NanumGothic.ttf"
 
-# 페이지 설정
+# 폰트 등록 및 이름 가져오기
+fm.fontManager.addfont(font_path)
+font_name = fm.FontProperties(fname=font_path).get_name()
+
+# matplotlib 전역 폰트 설정
+plt.rcParams['font.family'] = font_name
+plt.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
+sns.set(font=font_name)
+
+# --- 여기서부터 기존 코드를 그대로 쓰시면 됩니다 ---
+
 st.set_page_config(layout="wide")
 st.title("📊 성병 관련 감염병 발생 현황 시각화")
 
@@ -23,22 +31,6 @@ def load_data():
 
 army, age, month, year_gender_age = load_data()
 
-# ——— 성병 관련 키워드 리스트 ———
-sti_keywords = ['클라미디아', '매독', '임질', '성병']
-
-def filter_sti_data(df, col_name):
-    if col_name in df.columns:
-        mask = df[col_name].astype(str).str.contains('|'.join(sti_keywords))
-        return df[mask]
-    return df
-
-# 데이터별 성병 관련 필터링 (컬럼명에 맞게 수정하세요)
-army = filter_sti_data(army, '감염병명')              # 예: '감염병명' 컬럼이 있으면
-age = filter_sti_data(age, '감염병명')
-month = filter_sti_data(month, '감염병명')
-year_gender_age = filter_sti_data(year_gender_age, '감염병명')
-
-# 이후 기존 시각화 코드는 그대로 사용하세요
 section = st.sidebar.selectbox(
     "시각화 항목 선택",
     ["군별 발생 현황", "연령별 발생 현황", "월별 발생 현황", "연도/성별/연령별 발생"]
