@@ -1,2 +1,4 @@
-st.write(df.columns)
-st.write(df.head())
+streamlit
+pandas
+matplotlib
+seaborn
