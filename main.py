@@ -44,7 +44,7 @@ section = st.sidebar.selectbox(
 
 # 👇 항목별 그래프 (성병 키워드 필터 적용)
 if section == "군별 발생 현황":
-    st.header("🪖 군별 성병 감염병 발생 현황")
+    st.header("군별 성병 감염병 발생 현황")
     filtered_army = filter_sti(army, army.columns[0])
     st.dataframe(filtered_army)
     fig, ax = plt.subplots(figsize=(10, 5))
