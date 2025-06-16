@@ -4,50 +4,53 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.font_manager as fm
 
-# 폰트 설정 (여기 건들지 마세요)
+# 한글 폰트 경로
 font_path = "./font/NanumGothic.ttf"
+
+# 폰트 등록 및 설정
 fm.fontManager.addfont(font_path)
 font_name = fm.FontProperties(fname=font_path).get_name()
 plt.rcParams['font.family'] = font_name
 plt.rcParams['axes.unicode_minus'] = False
 sns.set(font=font_name)
 
+# 페이지 설정
 st.set_page_config(layout="wide")
 st.title("📊 성병 관련 감염병 발생 현황 시각화")
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv("감염병_연도별_및_연령별__성별_발생수_20250602121929.csv", encoding='cp949')
-    return df
+    data_by_army = pd.read_csv("감염병_군별_발생현황_20250602122005.csv", encoding='cp949')
+    data_by_year_gender_age = pd.read_csv("감염병_연도별_및_연령별__성별_발생수_20250602121929.csv", encoding='cp949')
+    return data_by_army, data_by_year_gender_age
 
-df = load_data()
+army, year_gender_age = load_data()
 
-sti_keywords = ['클라미디아', '매독', 'HIV', '성병']
+# 메뉴 (필요한 항목만 남김)
+section = st.sidebar.selectbox(
+    "시각화 항목 선택",
+    ["군별 발생 현황", "연도/성별/연령별 발생"]
+)
 
-df['병명합치기'] = df['법정전염병군별(1)'].astype(str) + " " + df['법정전염병군별(2)'].astype(str)
+# ✅ 군별 성병 관련 감염병 시각화 (건드리지 않음)
+if section == "군별 발생 현황":
+    st.header(" 군별 감염병 발생 현황 (성병 관련)")
+    sti_keywords = ['클라미디아', '임질', '매독', '성병', '성매개', '에이즈', 'HIV']
+    sti_df = army[army['법정감염병군별(2)'].str.contains('|'.join(sti_keywords), case=False, na=False)]
 
-filtered_df = df[df['병명합치기'].str.contains('|'.join(sti_keywords), case=False, na=False)].copy()
+    if sti_df.empty:
+        st.warning("성병 관련 데이터가 없습니다.")
+    else:
+        st.dataframe(sti_df)
 
-st.write("### 필터링된 데이터 미리보기", filtered_df.head())
+        year_columns = [col for col in sti_df.columns if col.startswith("20")]
+        melted = sti_df.melt(id_vars=['법정감염병군별(2)'], value_vars=year_columns,
+                             var_name='연도', value_name='발생수')
 
-time_cols = [col for col in filtered_df.columns if col.replace('.', '', 1).isdigit()]
+        fig, ax = plt.subplots(figsize=(10, 6))
+        sns.barplot(data=melted, x='연도', y='발생수', hue='법정감염병군별(2)', ax=ax)
+        ax.set_title("연도별 성병 관련 감염병 발생 현황")
+        plt.xticks(rotation=45)
+        st.pyplot(fig)
 
-filtered_df['발생수합계'] = filtered_df[time_cols].sum(axis=1)
 
-st.write("### 성병 감염병별 발생수 합계")
-st.dataframe(filtered_df[['병명합치기', '발생수합계']])
-
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.barplot(data=filtered_df, x='병명합치기', y='발생수합계', ax=ax)
-
-ax.set_title("성병 감염병별 발생수 합계", fontsize=16)
-ax.set_xlabel("감염병명", fontsize=12)
-ax.set_ylabel("발생수 합계", fontsize=12)
-plt.xticks(rotation=45, ha='right')
-
-# y축 범위를 발생수 최대값에 10% 여유를 둬서 보기 좋게 조절
-max_val = filtered_df['발생수합계'].max()
-ax.set_ylim(0, max_val * 1.1)
-
-plt.tight_layout()
-st.pyplot(fig)
